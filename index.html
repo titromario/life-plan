@@ -491,6 +491,7 @@ form.addEventListener("submit", (e)=>{
   saveState();
   closeModal();
   renderAll();
+  saveGoalToServer(goalData);
 });
 
 
@@ -593,13 +594,15 @@ function renderList(){
   }));
   container.querySelectorAll(".delBtn").forEach(b=> b.addEventListener("click", ()=>{
     if(confirm("Удалить эту цель?")){
+      const g = state.goals.find(x=>x.id===b.dataset.id);
       state.goals = state.goals.filter(x=>x.id!==b.dataset.id);
       saveState(); renderAll();
+      if(g) deleteGoalFromServer(g);
     }
   }));
   container.querySelectorAll(".stepToggle").forEach(cb=> cb.addEventListener("change", ()=>{
     const g = state.goals.find(x=>x.id===cb.dataset.goal);
-    if(g){ g.steps[Number(cb.dataset.step)].done = cb.checked; saveState(); renderAll(); }
+    if(g){ g.steps[Number(cb.dataset.step)].done = cb.checked; saveState(); renderAll(); saveGoalToServer(g); }
   }));
 }
 function escapeHtml(str){
@@ -855,8 +858,8 @@ document.getElementById("importFile").addEventListener("change", (e)=>{
 document.getElementById("seedBtn").addEventListener("click", ()=> seedDemo(true));
 
 /* ---------- Supabase Auth & Cloud Storage ---------- */
-const SUPABASE_URL = "ВСТАВЬ_СВОЙ_PROJECT_URL";
-const SUPABASE_ANON_KEY = "ВСТАВЬ_СВОЙ_ANON_KEY";
+const SUPABASE_URL = "https://vwolciqpiiproulobcxd.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_2hj0xHnEG59E_cjQux5DHA_sbwQh2aE";
 let sb = null;
 let currentUser = null;
 
