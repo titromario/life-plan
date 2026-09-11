@@ -915,7 +915,10 @@ function showAuthScreen(){
       </div>
     </div>`);
   document.getElementById("authGoogle").onclick = async ()=>{
-    const { error } = await sb.auth.signInWithOAuth({ provider: "google" });
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.href }
+      });;
     if(error) document.getElementById("authError").textContent = error.message;
   };
   document.getElementById("authSignIn").onclick = async ()=>{
