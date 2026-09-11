@@ -855,8 +855,8 @@ document.getElementById("importFile").addEventListener("change", (e)=>{
 document.getElementById("seedBtn").addEventListener("click", ()=> seedDemo(true));
 
 /* ---------- Supabase Auth & Cloud Storage ---------- */
-const SUPABASE_URL = "https://vwolciqpiiproulobcxd.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_2hj0xHnEG59E_cjQux5DHA_sbwQh2aE";
+const SUPABASE_URL = "ВСТАВЬ_СВОЙ_PROJECT_URL";
+const SUPABASE_ANON_KEY = "ВСТАВЬ_СВОЙ_ANON_KEY";
 let sb = null;
 let currentUser = null;
 
@@ -905,9 +905,16 @@ function showAuthScreen(){
           <button class="btn btn-secondary" id="authSignUp">Регистрация</button>
           <button class="btn btn-primary" id="authSignIn">Войти</button>
         </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" id="authGoogle">Войти через Google</button>
+        </div>
         <p id="authError" style="color:#c9536a; font-size:13px;"></p>
       </div>
     </div>`);
+  document.getElementById("authGoogle").onclick = async ()=>{
+    const { error } = await sb.auth.signInWithOAuth({ provider: "google" });
+    if(error) document.getElementById("authError").textContent = error.message;
+  };
   document.getElementById("authSignIn").onclick = async ()=>{
     const email = document.getElementById("authEmail").value;
     const password = document.getElementById("authPassword").value;
