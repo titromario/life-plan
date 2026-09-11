@@ -855,18 +855,43 @@ document.getElementById("importFile").addEventListener("change", (e)=>{
 document.getElementById("seedBtn").addEventListener("click", ()=> seedDemo(true));
 
 /* ---------- Supabase Auth & Cloud Storage ---------- */
-const SUPABASE_URL = "https://vwolciqpiiproulobcxd.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3b2xjaXFwaWlwcm91bG9iY3hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTAzMDEsImV4cCI6MjEwNDY4NjMwMX0.Ptia-IFgYCKPfmGWxNvxhzWKax1DtmYar1nOWhh1Iq4";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_URL = "https://vwolciqpiiproulobcxd.supabase.co/rest/v1/";
+const SUPABASE_ANON_KEY = "sb_publishable_2hj0xHnEG59E_cjQux5DHA_sbwQh2aE";
+let sb = null;
 let currentUser = null;
 
+function showConfigError(msg){
+  document.body.insertAdjacentHTML("beforeend", `
+    <div class="overlay" id="configErrorOverlay">
+      <div class="modal">
+        <h2>Не удалось подключиться к серверу</h2>
+        <p style="font-size:14px; line-height:1.5;">${msg}</p>
+        <p style="font-size:13px; color:#888;">Проверь, что в коде вместо заглушек SUPABASE_URL и SUPABASE_ANON_KEY вставлены реальные значения из Project Settings → API в Supabase, без лишних пробелов и с сохранёнными кавычками.</p>
+      </div>
+    </div>`);
+}
+
 async function initAuth(){
-  const { data: { session } } = await supabase.auth.getSession();
-  if(session){ currentUser = session.user; await afterLogin(); }
-  else { showAuthScreen(); }
-  supabase.auth.onAuthStateChange((event, session)=>{
-    if(session && !currentUser){ currentUser = session.user; afterLogin(); }
-  });
+  if(!SUPABASE_URL || SUPABASE_URL.indexOf("ВСТАВЬ") !== -1 || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.indexOf("ВСТАВЬ") !== -1){
+    showConfigError("В коде остались заглушки вместо реальных SUPABASE_URL / SUPABASE_ANON_KEY.");
+    return;
+  }
+  try{
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }catch(err){
+    showConfigError("Ошибка создания клиента Supabase: " + err.message);
+    return;
+  }
+  try{
+    const { data: { session } } = await sb.auth.getSession();
+    if(session){ currentUser = session.user; await afterLogin(); }
+    else { showAuthScreen(); }
+    sb.auth.onAuthStateChange((event, session)=>{
+      if(session && !currentUser){ currentUser = session.user; afterLogin(); }
+    });
+  }catch(err){
+    showConfigError("Ошибка подключения к серверу: " + err.message);
+  }
 }
 
 function showAuthScreen(){
@@ -886,14 +911,14 @@ function showAuthScreen(){
   document.getElementById("authSignIn").onclick = async ()=>{
     const email = document.getElementById("authEmail").value;
     const password = document.getElementById("authPassword").value;
-    const { data, error } = await supabase.auth.signInWithPassword({email, password});
+    const { data, error } = await sb.auth.signInWithPassword({email, password});
     if(error) document.getElementById("authError").textContent = error.message;
     else { currentUser = data.user; document.getElementById("authOverlay").remove(); afterLogin(); }
   };
   document.getElementById("authSignUp").onclick = async ()=>{
     const email = document.getElementById("authEmail").value;
     const password = document.getElementById("authPassword").value;
-    const { data, error } = await supabase.auth.signUp({email, password});
+    const { data, error } = await sb.auth.signUp({email, password});
     if(error) document.getElementById("authError").textContent = error.message;
     else document.getElementById("authError").textContent = "Проверь почту для подтверждения (если включено), затем войди.";
   };
@@ -907,7 +932,7 @@ async function afterLogin(){
 }
 
 async function loadStateFromServer(){
-  const { data, error } = await supabase.from("goals").select("id, data").eq("user_id", currentUser.id);
+  const { data, error } = await sb.from("goals").select("id, data").eq("user_id", currentUser.id);
   if(error){ console.error(error); return; }
   state.goals = (data||[]).map(row=>{
     const g = row.data; g._dbId = row.id;
@@ -921,21 +946,21 @@ async function saveGoalToServer(goal){
   const payload = { ...goal };
   const dbId = payload._dbId; delete payload._dbId;
   if(dbId){
-    await supabase.from("goals").update({ data: payload, updated_at: new Date().toISOString() }).eq("id", dbId);
+    await sb.from("goals").update({ data: payload, updated_at: new Date().toISOString() }).eq("id", dbId);
     goal._dbId = dbId;
   } else {
-    const { data, error } = await supabase.from("goals").insert({ user_id: currentUser.id, data: payload }).select().single();
+    const { data, error } = await sb.from("goals").insert({ user_id: currentUser.id, data: payload }).select().single();
     if(!error) goal._dbId = data.id;
     else console.error(error);
   }
 }
 
 async function deleteGoalFromServer(goal){
-  if(goal._dbId) await supabase.from("goals").delete().eq("id", goal._dbId);
+  if(goal._dbId) await sb.from("goals").delete().eq("id", goal._dbId);
 }
 
 document.getElementById("logoutBtn").addEventListener("click", async ()=>{
-  await supabase.auth.signOut();
+  await sb.auth.signOut();
   currentUser = null;
   state.goals = [];
   renderAll();
