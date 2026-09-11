@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Мой жизненный план</title>
+<title>Мой план жизни</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --bg1:#fdf6f0; --bg2:#f3f0fb; --bg3:#eef7f3;
@@ -157,6 +158,7 @@
     <button class="btn" id="exportBtn">Экспорт</button>
     <button class="btn" id="importBtn">Импорт</button>
     <button class="btn" id="seedBtn">Пример</button>
+    <button class="btn" id="logoutBtn">Выйти</button>
     <input type="file" id="importFile" hidden accept=".json">
   </div>
 </header>
@@ -852,6 +854,94 @@ document.getElementById("importFile").addEventListener("change", (e)=>{
 });
 document.getElementById("seedBtn").addEventListener("click", ()=> seedDemo(true));
 
+/* ---------- Supabase Auth & Cloud Storage ---------- */
+const SUPABASE_URL = "https://vwolciqpiiproulobcxd.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_2hj0xHnEG59E_cjQux5DHA_sbwQh2aE";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let currentUser = null;
+
+async function initAuth(){
+  const { data: { session } } = await supabase.auth.getSession();
+  if(session){ currentUser = session.user; await afterLogin(); }
+  else { showAuthScreen(); }
+  supabase.auth.onAuthStateChange((event, session)=>{
+    if(session && !currentUser){ currentUser = session.user; afterLogin(); }
+  });
+}
+
+function showAuthScreen(){
+  document.body.insertAdjacentHTML("beforeend", `
+    <div class="overlay" id="authOverlay">
+      <div class="modal">
+        <h2>Вход</h2>
+        <label>Email <input type="email" id="authEmail"></label>
+        <label>Пароль <input type="password" id="authPassword"></label>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" id="authSignUp">Регистрация</button>
+          <button class="btn btn-primary" id="authSignIn">Войти</button>
+        </div>
+        <p id="authError" style="color:#c9536a; font-size:13px;"></p>
+      </div>
+    </div>`);
+  document.getElementById("authSignIn").onclick = async ()=>{
+    const email = document.getElementById("authEmail").value;
+    const password = document.getElementById("authPassword").value;
+    const { data, error } = await supabase.auth.signInWithPassword({email, password});
+    if(error) document.getElementById("authError").textContent = error.message;
+    else { currentUser = data.user; document.getElementById("authOverlay").remove(); afterLogin(); }
+  };
+  document.getElementById("authSignUp").onclick = async ()=>{
+    const email = document.getElementById("authEmail").value;
+    const password = document.getElementById("authPassword").value;
+    const { data, error } = await supabase.auth.signUp({email, password});
+    if(error) document.getElementById("authError").textContent = error.message;
+    else document.getElementById("authError").textContent = "Проверь почту для подтверждения (если включено), затем войди.";
+  };
+}
+
+async function afterLogin(){
+  const overlay = document.getElementById("authOverlay");
+  if(overlay) overlay.remove();
+  await loadStateFromServer();
+  renderAll();
+}
+
+async function loadStateFromServer(){
+  const { data, error } = await supabase.from("goals").select("id, data").eq("user_id", currentUser.id);
+  if(error){ console.error(error); return; }
+  state.goals = (data||[]).map(row=>{
+    const g = row.data; g._dbId = row.id;
+    g.steps = (g.steps||[]).map(migrateStep);
+    if(!CATEGORIES[g.category]) g.category = CAT_KEYS[0];
+    return g;
+  });
+}
+
+async function saveGoalToServer(goal){
+  const payload = { ...goal };
+  const dbId = payload._dbId; delete payload._dbId;
+  if(dbId){
+    await supabase.from("goals").update({ data: payload, updated_at: new Date().toISOString() }).eq("id", dbId);
+    goal._dbId = dbId;
+  } else {
+    const { data, error } = await supabase.from("goals").insert({ user_id: currentUser.id, data: payload }).select().single();
+    if(!error) goal._dbId = data.id;
+    else console.error(error);
+  }
+}
+
+async function deleteGoalFromServer(goal){
+  if(goal._dbId) await supabase.from("goals").delete().eq("id", goal._dbId);
+}
+
+document.getElementById("logoutBtn").addEventListener("click", async ()=>{
+  await supabase.auth.signOut();
+  currentUser = null;
+  state.goals = [];
+  renderAll();
+  showAuthScreen();
+});
+
 /* ---------- Init ---------- */
 function renderAll(){
   renderList();
@@ -859,8 +949,7 @@ function renderAll(){
   renderTimeline();
   renderWheel();
 }
-loadState();
-renderAll();
+initAuth();
 </script>
 </body>
 </html>
