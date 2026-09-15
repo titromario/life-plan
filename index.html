@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Планировщик жизни</title>
+<title>Мой план жизни</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
@@ -77,6 +77,8 @@
   .cat-dot{width:10px; height:10px; border-radius:50%; background:var(--cat-color); display:inline-block; flex-shrink:0;}
   .cat-label{font-size:12px; color:var(--muted); background:rgba(120,110,150,0.08); padding:2px 8px; border-radius:20px;}
   .goal-title{font-size:17px; font-weight:700; margin:0; color:#453f5c;}
+  .goal-card.archived .goal-title{text-decoration:line-through; color:var(--muted);}
+  .goal-card.archived{opacity:0.75;}
   .goal-dates{font-size:12px; color:var(--muted);}
   .goal-desc{color:var(--muted); font-size:13px; margin:8px 0 10px;}
   .badges{display:flex; gap:8px; flex-wrap:wrap;}
@@ -149,7 +151,7 @@
   <h1>🌱 Мой план жизни</h1>
   <div class="tabs">
     <button class="tab-btn active" data-tab="list">📋 Цели</button>
-    <button class="tab-btn" data-tab="matrix">🎯 Матрица</button>
+    <button class="tab-btn" data-tab="matrix">🎯 Приоритеты</button>
     <button class="tab-btn" data-tab="timeline">📅 Таймлайн</button>
     <button class="tab-btn" data-tab="wheel">🛞 Баланс</button>
   </div>
@@ -166,22 +168,34 @@
 <main>
   <section class="view active" id="view-list">
     <div class="toolbar">
-      <div style="color:var(--muted); font-size:13px;">Сортировка:</div>
-      <select id="sortSelect">
-        <option value="score">По приоритету (важность×срочность)</option>
-        <option value="importance">По важности</option>
-        <option value="urgency">По срочности</option>
-        <option value="start">По дате начала</option>
-        <option value="category">По категории</option>
-      </select>
+      <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="color:var(--muted); font-size:13px;">Показать:</span>
+          <select id="filterSelect">
+            <option value="active" selected>Активные</option>
+            <option value="archived">Архивные</option>
+            <option value="all">Все цели</option>
+          </select>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="color:var(--muted); font-size:13px;">Сортировка:</span>
+          <select id="sortSelect">
+            <option value="score">По приоритету (важность×срочность)</option>
+            <option value="importance">По важности</option>
+            <option value="urgency">По срочности</option>
+            <option value="start">По дате начала</option>
+            <option value="category">По категории</option>
+          </select>
+        </div>
+      </div>
     </div>
     <div class="goal-list" id="goalListContainer"></div>
   </section>
 
   <section class="view" id="view-matrix">
     <div class="card-panel">
-      <h3 style="margin-top:0;">Матрица Эйзенхауэра</h3>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:0;">Верхний правый квадрант — делай сейчас. Верхний левый квадрант — планируй заранее. Нижний правый квадрант — делай быстро, но это не главное. Нижний левый квадрант — отложи или откажись.</p>
+      <h3 style="margin-top:0;">Матрица важность × срочность</h3>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:0;">Цели в верхнем правом квадранте — делай сейчас. Верхний левый — планируй заранее. Нижний правый — делай быстро, но это не главное. Нижний левый — можно отложить или отказаться.</p>
     </div>
     <div class="card-panel" style="overflow-x:auto;">
       <svg id="matrixSvg" viewBox="0 0 560 560" style="width:100%; max-width:620px; display:block; margin:0 auto;"></svg>
@@ -191,7 +205,7 @@
   <section class="view" id="view-timeline">
     <div class="card-panel">
       <h3 style="margin-top:0;">Таймлайн целей</h3>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:0;">Показывает, как цели распределены и накладываются во времени. Красная линия — сегодняшний день.</p>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:0;">Как цели распределены и накладываются во времени. Красная линия — сегодняшний день.</p>
     </div>
     <div id="timelineWrap"><svg id="timelineSvg"></svg></div>
   </section>
@@ -199,7 +213,7 @@
   <section class="view" id="view-wheel">
     <div class="card-panel">
       <h3 style="margin-top:0;">Колесо баланса жизни</h3>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:0;">Показывает, сколько внимания уходит на каждую сферу жизни. Сильные перекосы в одну сторону — повод задуматься.</p>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:0;">Показывает, сколько внимания (по числу целей и их приоритету) уходит на каждую сферу жизни. Сильные перекосы в одну сторону — повод задуматься.</p>
     </div>
     <div class="card-panel" style="overflow-x:auto;">
       <svg id="wheelSvg" viewBox="0 0 620 640" style="width:100%; max-width:640px; display:block; margin:0 auto;"></svg>
@@ -207,19 +221,21 @@
   </section>
 </main>
 
+<footer>Все данные сохраняются локально в этом браузере. Используй «Экспорт», чтобы сделать резервную копию.</footer>
+
 <div class="overlay hidden" id="modalOverlay">
   <div class="modal">
     <h2 id="modalTitle">Новая цель</h2>
     <form id="goalForm">
       <input type="hidden" id="goalId">
-      <label>Название цели*
-        <input type="text" id="fTitle" required placeholder="Чего ты хочешь">
+      <label>Название цели / мечты*
+        <input type="text" id="fTitle" required placeholder="Например: Красивое и сильное тело">
       </label>
       <label>Категория
         <select id="fCategory"></select>
       </label>
-      <label>Описание
-        <textarea id="fDesc" rows="2" placeholder="Почему это важно"></textarea>
+      <label>Описание, зачем это нужно
+        <textarea id="fDesc" rows="2" placeholder="Почему это важно для тебя"></textarea>
       </label>
       <div class="range-row">
         <label>Важность: <b id="fImpVal">5</b>/10
@@ -230,16 +246,16 @@
         </label>
       </div>
       <div class="date-row">
-        <label>Старт
+        <label>Начало
           <input type="month" id="fStart">
         </label>
-        <label>Финиш
+        <label>Хочу достичь к
           <input type="month" id="fEnd">
         </label>
       </div>
       <div class="steps-block">
         <div class="steps-head">
-          <span>Шаги по достижению цели</span>
+          <span>Шаги / задачи — что конкретно нужно делать</span>
           <button type="button" class="btn btn-secondary" id="addStepBtn">+ шаг</button>
         </div>
         <div id="stepsContainer"></div>
@@ -264,7 +280,7 @@ const CATEGORIES = {
   creativity:{label:"Творчество", color:"#ffe28a"}
 };
 const CAT_KEYS = Object.keys(CATEGORIES);
-const SIZES = { S:{label:"S", color:"#a8e6c9"}, M:{label:"M", color:"#ffe28a"}, L:{label:"L", color:"#ff9fa8"} };
+const SIZES = { S:{label:"Маленькая", color:"#a8e6c9"}, M:{label:"Средняя", color:"#ffe28a"}, L:{label:"Большая", color:"#ff9fa8"} };
 const MONTHS_RU = ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
 const STORE_KEY = "lifePlanData_v2";
 
@@ -288,14 +304,14 @@ function loadState(){
     const raw = localStorage.getItem(STORE_KEY);
     if(raw){
       state = JSON.parse(raw);
-      state.goals.forEach(g=>{ g.steps = (g.steps||[]).map(migrateStep); if(!CATEGORIES[g.category]) g.category = CAT_KEYS[0]; });
+      state.goals.forEach(g=>{ g.steps = (g.steps||[]).map(migrateStep); if(!CATEGORIES[g.category]) g.category = CAT_KEYS[0]; if(g.archived===undefined) g.archived=false; });
       return;
     }
     // try migrate from old key
     const oldRaw = localStorage.getItem("lifePlanData_v1");
     if(oldRaw){
       const old = JSON.parse(oldRaw);
-      old.goals.forEach(g=>{ g.steps = (g.steps||[]).map(migrateStep); if(!CATEGORIES[g.category]) g.category = CAT_KEYS[0]; });
+      old.goals.forEach(g=>{ g.steps = (g.steps||[]).map(migrateStep); if(!CATEGORIES[g.category]) g.category = CAT_KEYS[0]; if(g.archived===undefined) g.archived=false; });
       state = old; saveState(); return;
     }
   }catch(e){}
@@ -411,13 +427,13 @@ function addStepRow(step){
   row.innerHTML =
     '<div class="step-row-top">' +
       '<input type="checkbox" class="step-done" '+(s.done? "checked":"")+' style="accent-color:#b39ddb;">' +
-      '<input type="text" class="step-text" placeholder="Что нужно делать" value="'+(s.text? s.text.replace(/"/g,'&quot;'):"")+'">' +
+      '<input type="text" class="step-text" placeholder="Например: тренироваться 3 раза в неделю" value="'+(s.text? s.text.replace(/"/g,'&quot;'):"")+'">' +
       '<button type="button" class="removeStep">✕</button>' +
     '</div>' +
     '<div class="step-row-fields">' +
-      '<div>Значимость<select class="step-sig">'+sigOptionsHtml(s.significance||3)+'</select></div>' +
+      '<div>Значимость (1-5)<select class="step-sig">'+sigOptionsHtml(s.significance||3)+'</select></div>' +
       '<div>Размер задачи<select class="step-size">'+sizeOptionsHtml(s.size||"M")+'</select></div>' +
-      '<div style="flex:2; min-width:200px;">Результат выполнения<input type="text" class="step-result" placeholder="Как понять, что всё выполнено" value="'+(s.result? s.result.replace(/"/g,'&quot;'):"")+'"></div>' +
+      '<div style="flex:2; min-width:200px;">Результат / критерий выполнения<input type="text" class="step-result" placeholder="Как понять, что готово" value="'+(s.result? s.result.replace(/"/g,'&quot;'):"")+'"></div>' +
     '</div>';
   stepsContainer.appendChild(row);
 }
@@ -496,6 +512,8 @@ form.addEventListener("submit", (e)=>{
 /* ---------- List view ---------- */
 const sortSelect = document.getElementById("sortSelect");
 sortSelect.addEventListener("change", renderList);
+const filterSelect = document.getElementById("filterSelect");
+filterSelect.addEventListener("change", renderList);
 
 function sortGoals(goals, sortBy){
   const arr = goals.slice();
@@ -525,8 +543,16 @@ function renderList(){
     container.innerHTML = '<div class="empty-hint">Пока нет ни одной цели.<br>Нажми «+ Новая цель», чтобы добавить первую мечту и шаги к ней.</div>';
     return;
   }
+  const filterBy = filterSelect.value;
+  let filtered = state.goals;
+  if(filterBy==="active") filtered = state.goals.filter(g=>!g.archived);
+  else if(filterBy==="archived") filtered = state.goals.filter(g=>g.archived);
+  if(filtered.length === 0){
+    container.innerHTML = '<div class="empty-hint">Нет целей в этом фильтре.</div>';
+    return;
+  }
   const sortBy = sortSelect.value;
-  const goals = sortGoals(state.goals, sortBy);
+  const goals = sortGoals(filtered, sortBy);
 
   goals.forEach(g=>{
     const cat = CATEGORIES[g.category] || CATEGORIES[CAT_KEYS[0]];
@@ -536,7 +562,7 @@ function renderList(){
     const score = g.importance * g.urgency;
 
     const card = document.createElement("div");
-    card.className = "goal-card";
+    card.className = "goal-card" + (g.archived ? " archived" : "");
     card.style.setProperty("--cat-color", cat.color);
 
     const stepsHtml = g.steps.map((s,i)=>{
@@ -565,6 +591,7 @@ function renderList(){
           '<div class="goal-dates">'+formatMonth(g.start)+' → '+formatMonth(g.end)+'</div>' +
         '</div>' +
         '<div class="goal-actions">' +
+          '<button class="icon-btn archiveBtn" data-id="'+g.id+'" title="'+(g.archived?"Вернуть в активные":"Отметить выполненной")+'">'+(g.archived?"↩️":"✅")+'</button>' +
           '<button class="icon-btn editBtn" data-id="'+g.id+'" title="Редактировать">✏️</button>' +
           '<button class="icon-btn delBtn" data-id="'+g.id+'" title="Удалить">🗑️</button>' +
         '</div>' +
@@ -589,6 +616,10 @@ function renderList(){
   container.querySelectorAll(".editBtn").forEach(b=> b.addEventListener("click", ()=>{
     const g = state.goals.find(x=>x.id===b.dataset.id);
     openModal(g);
+  }));
+  container.querySelectorAll(".archiveBtn").forEach(b=> b.addEventListener("click", ()=>{
+    const g = state.goals.find(x=>x.id===b.dataset.id);
+    if(g){ g.archived = !g.archived; saveState(); renderAll(); saveGoalToServer(g); }
   }));
   container.querySelectorAll(".delBtn").forEach(b=> b.addEventListener("click", ()=>{
     if(confirm("Удалить эту цель?")){
@@ -626,6 +657,11 @@ function renderMatrix(){
   html += line(pad, pad, pad, pad+size, "rgba(90,80,110,0.3)");
   html += line(mid, pad, mid, pad+size, "rgba(90,80,110,0.15)");
   html += line(pad, mid, pad+size, mid, "rgba(90,80,110,0.15)");
+
+  html += text(pad+10, pad+16, "Планировать", "12px", "#3f9d6f", "start");
+  html += text(pad+size-10, pad+16, "Делать сейчас", "12px", "#d1495b", "end");
+  html += text(pad+10, pad+size-6, "Можно отложить", "12px", "#8b859c", "start");
+  html += text(pad+size-10, pad+size-6, "Сделать быстро", "12px", "#c97a2e", "end");
 
   html += text(pad+size/2, H-15, "Срочность →", "13px", "#8b859c", "middle");
   html += '<text x="20" y="'+ (pad+size/2) +'" font-size="13px" fill="#8b859c" transform="rotate(-90 20 '+(pad+size/2)+')" text-anchor="middle">Важность →</text>';
@@ -851,7 +887,7 @@ document.getElementById("importFile").addEventListener("change", (e)=>{
 document.getElementById("seedBtn").addEventListener("click", ()=> seedDemo(true));
 
 /* ---------- Supabase Auth & Cloud Storage ---------- */
-const SUPABASE_URL = "https://vwolciqpiiproulobcxd.supabase.co";
+const SUPABASE_URL = "https://vwolciqpiiproulobcxd.supabase.co/";
 const SUPABASE_ANON_KEY = "sb_publishable_2hj0xHnEG59E_cjQux5DHA_sbwQh2aE";
 let sb = null;
 let currentUser = null;
@@ -908,10 +944,7 @@ function showAuthScreen(){
       </div>
     </div>`);
   document.getElementById("authGoogle").onclick = async ()=>{
-    const { error } = await sb.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: window.location.origin + window.location.pathname }
-      });
+    const { error } = await sb.auth.signInWithOAuth({ provider: "google" });
     if(error) document.getElementById("authError").textContent = error.message;
   };
   document.getElementById("authSignIn").onclick = async ()=>{
