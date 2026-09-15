@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Мой план жизни</title>
+<title>Планировщик жизни</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
@@ -180,8 +180,8 @@
 
   <section class="view" id="view-matrix">
     <div class="card-panel">
-      <h3 style="margin-top:0;">Матрица важность × срочность</h3>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:0;">Цели в верхнем правом квадранте — делай сейчас. Верхний левый — планируй заранее. Нижний правый — делай быстро, но это не главное. Нижний левый — можно отложить или отказаться.</p>
+      <h3 style="margin-top:0;">Матрица Эйзенхауэра</h3>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:0;">Верхний правый квадрант — делай сейчас. Верхний левый — планируй заранее. Нижний правый — делай быстро, но это не главное. Нижний левый — отложи или откажись</p>
     </div>
     <div class="card-panel" style="overflow-x:auto;">
       <svg id="matrixSvg" viewBox="0 0 560 560" style="width:100%; max-width:620px; display:block; margin:0 auto;"></svg>
@@ -199,7 +199,7 @@
   <section class="view" id="view-wheel">
     <div class="card-panel">
       <h3 style="margin-top:0;">Колесо баланса жизни</h3>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:0;">Показывает, сколько внимания (по числу целей и их приоритету) уходит на каждую сферу жизни. Сильные перекосы в одну сторону — повод задуматься.</p>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:0;">Показывает, сколько внимания уходит на каждую сферу жизни. Сильные перекосы в одну сторону — повод задуматься.</p>
     </div>
     <div class="card-panel" style="overflow-x:auto;">
       <svg id="wheelSvg" viewBox="0 0 620 640" style="width:100%; max-width:640px; display:block; margin:0 auto;"></svg>
@@ -212,14 +212,14 @@
     <h2 id="modalTitle">Новая цель</h2>
     <form id="goalForm">
       <input type="hidden" id="goalId">
-      <label>Название цели / мечты*
-        <input type="text" id="fTitle" required placeholder="Например: Красивое и сильное тело">
+      <label>Название цели*
+        <input type="text" id="fTitle" required placeholder="Чего ты хочешь">
       </label>
       <label>Категория
         <select id="fCategory"></select>
       </label>
-      <label>Описание, зачем это нужно
-        <textarea id="fDesc" rows="2" placeholder="Почему это важно для тебя"></textarea>
+      <label>Описание
+        <textarea id="fDesc" rows="2" placeholder="Почему это важно"></textarea>
       </label>
       <div class="range-row">
         <label>Важность: <b id="fImpVal">5</b>/10
@@ -230,16 +230,16 @@
         </label>
       </div>
       <div class="date-row">
-        <label>Начало
+        <label>Старт
           <input type="month" id="fStart">
         </label>
-        <label>Хочу достичь к
+        <label>Финиш
           <input type="month" id="fEnd">
         </label>
       </div>
       <div class="steps-block">
         <div class="steps-head">
-          <span>Шаги / задачи — что конкретно нужно делать</span>
+          <span>Шаги по достижению цели</span>
           <button type="button" class="btn btn-secondary" id="addStepBtn">+ шаг</button>
         </div>
         <div id="stepsContainer"></div>
@@ -411,13 +411,13 @@ function addStepRow(step){
   row.innerHTML =
     '<div class="step-row-top">' +
       '<input type="checkbox" class="step-done" '+(s.done? "checked":"")+' style="accent-color:#b39ddb;">' +
-      '<input type="text" class="step-text" placeholder="Например: тренироваться 3 раза в неделю" value="'+(s.text? s.text.replace(/"/g,'&quot;'):"")+'">' +
+      '<input type="text" class="step-text" placeholder="Что нужно делать" value="'+(s.text? s.text.replace(/"/g,'&quot;'):"")+'">' +
       '<button type="button" class="removeStep">✕</button>' +
     '</div>' +
     '<div class="step-row-fields">' +
-      '<div>Значимость (1-5)<select class="step-sig">'+sigOptionsHtml(s.significance||3)+'</select></div>' +
+      '<div>Значимость<select class="step-sig">'+sigOptionsHtml(s.significance||3)+'</select></div>' +
       '<div>Размер задачи<select class="step-size">'+sizeOptionsHtml(s.size||"M")+'</select></div>' +
-      '<div style="flex:2; min-width:200px;">Результат / критерий выполнения<input type="text" class="step-result" placeholder="Как понять, что готово" value="'+(s.result? s.result.replace(/"/g,'&quot;'):"")+'"></div>' +
+      '<div style="flex:2; min-width:200px;">Результат выполнения<input type="text" class="step-result" placeholder="Как понять, что всё выполнено" value="'+(s.result? s.result.replace(/"/g,'&quot;'):"")+'"></div>' +
     '</div>';
   stepsContainer.appendChild(row);
 }
@@ -626,11 +626,6 @@ function renderMatrix(){
   html += line(pad, pad, pad, pad+size, "rgba(90,80,110,0.3)");
   html += line(mid, pad, mid, pad+size, "rgba(90,80,110,0.15)");
   html += line(pad, mid, pad+size, mid, "rgba(90,80,110,0.15)");
-
-  html += text(pad+10, pad+16, "Планировать", "12px", "#3f9d6f", "start");
-  html += text(pad+size-10, pad+16, "Делать сейчас", "12px", "#d1495b", "end");
-  html += text(pad+10, pad+size-6, "Можно отложить", "12px", "#8b859c", "start");
-  html += text(pad+size-10, pad+size-6, "Сделать быстро", "12px", "#c97a2e", "end");
 
   html += text(pad+size/2, H-15, "Срочность →", "13px", "#8b859c", "middle");
   html += '<text x="20" y="'+ (pad+size/2) +'" font-size="13px" fill="#8b859c" transform="rotate(-90 20 '+(pad+size/2)+')" text-anchor="middle">Важность →</text>';
