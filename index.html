@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Мой план жизни</title>
+<title>Жизненные цели</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
@@ -148,12 +148,12 @@
 <body>
 
 <header>
-  <h1>🌱 Мой план жизни</h1>
+  <h1>🌱 Жизненные цели</h1>
   <div class="tabs">
-    <button class="tab-btn active" data-tab="list">📋 Цели</button>
-    <button class="tab-btn" data-tab="matrix">🎯 Приоритеты</button>
-    <button class="tab-btn" data-tab="timeline">📅 Таймлайн</button>
-    <button class="tab-btn" data-tab="wheel">🛞 Баланс</button>
+    <button class="tab-btn active" data-tab="list">Цели</button>
+    <button class="tab-btn" data-tab="matrix">Матрица</button>
+    <button class="tab-btn" data-tab="timeline">Таймлайн</button>
+    <button class="tab-btn" data-tab="wheel">Баланс</button>
   </div>
   <div class="header-actions">
     <button class="btn btn-primary" id="addGoalBtn">+ Новая цель</button>
@@ -194,8 +194,8 @@
 
   <section class="view" id="view-matrix">
     <div class="card-panel">
-      <h3 style="margin-top:0;">Матрица важность × срочность</h3>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:0;">Цели в верхнем правом квадранте — делай сейчас. Верхний левый — планируй заранее. Нижний правый — делай быстро, но это не главное. Нижний левый — можно отложить или отказаться.</p>
+      <h3 style="margin-top:0;">Матрица целей</h3>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:0;">Показывает, какие цели брать в приоритете. Верхний левый квадрант — делай сейчас. Верхний правый квадрант — подумай над упрощением. Нижний левый квадрант — отложи на будущее. Нижний правый квадрант — откажись или переформулируй.</p>
     </div>
     <div class="card-panel" style="overflow-x:auto;">
       <svg id="matrixSvg" viewBox="0 0 560 560" style="width:100%; max-width:620px; display:block; margin:0 auto;"></svg>
@@ -205,7 +205,7 @@
   <section class="view" id="view-timeline">
     <div class="card-panel">
       <h3 style="margin-top:0;">Таймлайн целей</h3>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:0;">Как цели распределены и накладываются во времени. Красная линия — сегодняшний день.</p>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:0;">Показывает, как цели распределены и накладываются во времени. Красная линия — сегодняшний день.</p>
     </div>
     <div id="timelineWrap"><svg id="timelineSvg"></svg></div>
   </section>
@@ -213,7 +213,7 @@
   <section class="view" id="view-wheel">
     <div class="card-panel">
       <h3 style="margin-top:0;">Колесо баланса жизни</h3>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:0;">Показывает, сколько внимания (по числу целей и их приоритету) уходит на каждую сферу жизни. Сильные перекосы в одну сторону — повод задуматься.</p>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:0;">Показывает, сколько внимания уходит на каждую сферу жизни. Сильные перекосы в одну сторону — повод задуматься.</p>
     </div>
     <div class="card-panel" style="overflow-x:auto;">
       <svg id="wheelSvg" viewBox="0 0 620 640" style="width:100%; max-width:640px; display:block; margin:0 auto;"></svg>
@@ -221,20 +221,18 @@
   </section>
 </main>
 
-<footer>Все данные сохраняются локально в этом браузере. Используй «Экспорт», чтобы сделать резервную копию.</footer>
-
 <div class="overlay hidden" id="modalOverlay">
   <div class="modal">
     <h2 id="modalTitle">Новая цель</h2>
     <form id="goalForm">
       <input type="hidden" id="goalId">
-      <label>Название цели / мечты*
-        <input type="text" id="fTitle" required placeholder="Например: Красивое и сильное тело">
+      <label>Название цели
+        <input type="text" id="fTitle" required placeholder="Чего ты хочешь">
       </label>
       <label>Категория
         <select id="fCategory"></select>
       </label>
-      <label>Описание, зачем это нужно
+      <label>Описание
         <textarea id="fDesc" rows="2" placeholder="Почему это важно для тебя"></textarea>
       </label>
       <div class="range-row">
@@ -246,17 +244,17 @@
         </label>
       </div>
       <div class="date-row">
-        <label>Начало
+        <label>Старт
           <input type="month" id="fStart">
         </label>
-        <label>Хочу достичь к
+        <label>Финиш
           <input type="month" id="fEnd">
         </label>
       </div>
       <div class="steps-block">
         <div class="steps-head">
-          <span>Шаги / задачи — что конкретно нужно делать</span>
-          <button type="button" class="btn btn-secondary" id="addStepBtn">+ шаг</button>
+          <span>Задачи</span>
+          <button type="button" class="btn btn-secondary" id="addStepBtn">Добавить</button>
         </div>
         <div id="stepsContainer"></div>
       </div>
@@ -280,7 +278,7 @@ const CATEGORIES = {
   creativity:{label:"Творчество", color:"#ffe28a"}
 };
 const CAT_KEYS = Object.keys(CATEGORIES);
-const SIZES = { S:{label:"Маленькая", color:"#a8e6c9"}, M:{label:"Средняя", color:"#ffe28a"}, L:{label:"Большая", color:"#ff9fa8"} };
+const SIZES = { S:{label:"S", color:"#a8e6c9"}, M:{label:"M", color:"#ffe28a"}, L:{label:"X", color:"#ff9fa8"} };
 const MONTHS_RU = ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
 const STORE_KEY = "lifePlanData_v2";
 
@@ -427,13 +425,13 @@ function addStepRow(step){
   row.innerHTML =
     '<div class="step-row-top">' +
       '<input type="checkbox" class="step-done" '+(s.done? "checked":"")+' style="accent-color:#b39ddb;">' +
-      '<input type="text" class="step-text" placeholder="Например: тренироваться 3 раза в неделю" value="'+(s.text? s.text.replace(/"/g,'&quot;'):"")+'">' +
+      '<input type="text" class="step-text" placeholder="Что нужно выполнить" value="'+(s.text? s.text.replace(/"/g,'&quot;'):"")+'">' +
       '<button type="button" class="removeStep">✕</button>' +
     '</div>' +
     '<div class="step-row-fields">' +
-      '<div>Значимость (1-5)<select class="step-sig">'+sigOptionsHtml(s.significance||3)+'</select></div>' +
+      '<div>Значимость<select class="step-sig">'+sigOptionsHtml(s.significance||3)+'</select></div>' +
       '<div>Размер задачи<select class="step-size">'+sizeOptionsHtml(s.size||"M")+'</select></div>' +
-      '<div style="flex:2; min-width:200px;">Результат / критерий выполнения<input type="text" class="step-result" placeholder="Как понять, что готово" value="'+(s.result? s.result.replace(/"/g,'&quot;'):"")+'"></div>' +
+      '<div style="flex:2; min-width:200px;">Результат<input type="text" class="step-result" placeholder="Как понять, что готово" value="'+(s.result? s.result.replace(/"/g,'&quot;'):"")+'"></div>' +
     '</div>';
   stepsContainer.appendChild(row);
 }
@@ -540,7 +538,7 @@ function renderList(){
   const container = document.getElementById("goalListContainer");
   container.innerHTML = "";
   if(state.goals.length === 0){
-    container.innerHTML = '<div class="empty-hint">Пока нет ни одной цели.<br>Нажми «+ Новая цель», чтобы добавить первую мечту и шаги к ней.</div>';
+    container.innerHTML = '<div class="empty-hint">Пока нет ни одной цели.<br>Нажми на кнопку «Новая цель», чтобы начать планировать свою жизнь.</div>';
     return;
   }
   const filterBy = filterSelect.value;
@@ -600,7 +598,7 @@ function renderList(){
       '<div class="badges">' +
         '<span class="badge score">Приоритет '+score+'</span>' +
         '<span class="badge">Важность '+g.importance+'/10</span>' +
-        '<span class="badge">Срочность '+g.urgency+'/10</span>' +
+        '<span class="badge">Сложность '+g.urgency+'/10</span>' +
       '</div>' +
       (total ? (
         '<div class="progress-wrap">' +
@@ -658,12 +656,7 @@ function renderMatrix(){
   html += line(mid, pad, mid, pad+size, "rgba(90,80,110,0.15)");
   html += line(pad, mid, pad+size, mid, "rgba(90,80,110,0.15)");
 
-  html += text(pad+10, pad+16, "Планировать", "12px", "#3f9d6f", "start");
-  html += text(pad+size-10, pad+16, "Делать сейчас", "12px", "#d1495b", "end");
-  html += text(pad+10, pad+size-6, "Можно отложить", "12px", "#8b859c", "start");
-  html += text(pad+size-10, pad+size-6, "Сделать быстро", "12px", "#c97a2e", "end");
-
-  html += text(pad+size/2, H-15, "Срочность →", "13px", "#8b859c", "middle");
+  html += text(pad+size/2, H-15, "Сложность →", "13px", "#8b859c", "middle");
   html += '<text x="20" y="'+ (pad+size/2) +'" font-size="13px" fill="#8b859c" transform="rotate(-90 20 '+(pad+size/2)+')" text-anchor="middle">Важность →</text>';
 
   for(let v=0; v<=10; v+=2){
@@ -728,7 +721,7 @@ function renderTimeline(){
   const withDates = state.goals.filter(g=>g.start && g.end);
   if(withDates.length===0){
     svg.setAttribute("width", 600); svg.setAttribute("height", 120);
-    svg.innerHTML = text(300,60,"Добавь даты начала и дедлайна целям, чтобы увидеть таймлайн","13px","#8b859c","middle");
+    svg.innerHTML = text(300,60,"Добавь даты целям, чтобы увидеть таймлайн","13px","#8b859c","middle");
     return;
   }
   let minD=null, maxD=null;
