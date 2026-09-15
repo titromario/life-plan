@@ -7,12 +7,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
-    --bg1:#fdf6f0; --bg2:#f3f0fb; --bg3:#eef7f3;
+    --bg1:#F3F0EB; --bg2:#f3f0fb; --bg3:#eef7f3;
     --card:rgba(255,255,255,0.75);
     --cardBorder:rgba(60,50,80,0.10);
-    --text:#3a3550;
+    --text:#5C5950;
     --muted:#8b859c;
-    --accent:#b39ddb;
+    --accent:#E09502;
     --accent2:#7fd8c4;
     --danger:#e78a9a;
   }
